@@ -45,6 +45,7 @@ import time
 import rosgraph.xmlrpc
 
 import rosmaster.master_api
+import rosmaster.zeromq
 
 DEFAULT_MASTER_PORT=11311 #default port for master's to bind to
 
@@ -52,6 +53,7 @@ class Master(object):
     
     def __init__(self, port=DEFAULT_MASTER_PORT):
         self.port = port
+        self.zeromq_port = port + 1
         
     def start(self):
         """
@@ -60,10 +62,14 @@ class Master(object):
         self.handler = None
         self.master_node = None
         self.uri = None
+        self.zeromq_uri = None
 
         handler = rosmaster.master_api.ROSMasterHandler()
         master_node = rosgraph.xmlrpc.XmlRpcNode(self.port, handler)
         master_node.start()
+
+        zeromq_master_node = rosmaster.zeromq.ZeroMQNode(self.port, handler)
+        zeromq_master_node.start()
 
         # poll for initialization
         while not master_node.uri:
@@ -72,9 +78,13 @@ class Master(object):
         # save fields
         self.handler = handler
         self.master_node = master_node
+        self.zeromq_master_node = zeromq_master_node
         self.uri = master_node.uri
-        
-        logging.getLogger('rosmaster.master').info("Master initialized: port[%s], uri[%s]", self.port, self.uri)
+        self.zeromq_uri = zeromq_master_node.uri
+
+        logging.getLogger('rosmaster.master').info("XML-RPC Master initialized: port[%s], uri[%s]", self.port, self.uri)
+        logging.getLogger('rosmaster.master').info("ZeroMQ Master initialized: port[%s], uri[%s]", self.zeromq_port,
+            self.zeromq_uri)
 
     def ok(self):
         if self.master_node is not None:
