@@ -10,7 +10,7 @@ service MasterAPI {
     list<string> getPublishedTopics(1:string subgraph, 2:string caller_id),
     list<string> getSystemState(1:string caller_id),
     list<string> getTopicTypes(1:string caller_id),
-    void getUri(),
+    list<string> getUri(1:string caller_id),
     list<string> hasParam(1:string key, 2:string caller_id),
     list<string> lookupNode(1:string node, 2:string caller_id),
     list<string> lookupService(1:string service_, 2:string caller_id),

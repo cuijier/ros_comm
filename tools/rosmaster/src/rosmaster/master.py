@@ -68,11 +68,15 @@ class Master(object):
         master_node = rosgraph.xmlrpc.XmlRpcNode(self.port, handler)
         master_node.start()
 
-        zeromq_master_node = rosmaster.zeromq.ZeroMQNode(self.port, handler)
+        zeromq_master_node = rosmaster.zeromq.ZeroMQNode(self.zeromq_port, handler)
         zeromq_master_node.start()
 
         # poll for initialization
         while not master_node.uri:
+            time.sleep(0.0001) 
+
+        # poll for initialization
+        while not zeromq_master_node.uri:
             time.sleep(0.0001) 
 
         # save fields

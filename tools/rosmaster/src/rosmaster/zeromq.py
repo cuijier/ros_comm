@@ -1,6 +1,6 @@
 import zmq
-from thrift.contrib.zeromq import TZmqServer
-from rosmaster.thrift import MasterAPI
+from rosmaster.genpythrift.MasterAPI import MasterAPI
+from rosmaster import TZmqServer
 
 try:
     import _thread
@@ -8,27 +8,40 @@ except ImportError:
     import thread as _thread
 
 
-class StorageHandler(storage.Storage.Iface):
-  def __init__(self):
-    self.value = 0
+class WrappedHandler(object):
 
-  def incr(self, amount):
-    self.value += amount
+    def __init__(self, handler):
+        self.handler = handler
 
-  def get(self):
-    return self.value
+    def getParamNames(self, caller_id):
+        result = self.handler.getParamNames(caller_id)
+        return [str(i) for i in result]
+
+    def getUri(self, caller_id):
+        result = self.handler.getUri(caller_id)
+        return [str(i) for i in result]
+
+    def getPid(self, caller_id):
+        result = self.handler.getPid(caller_id)
+        return [str(i) for i in result]
+
+    def getSystemState(self, caller_id):
+        result = self.handler.getSystemState(caller_id)
+        return [str(i) for i in result]
 
 
 class ZeroMQNode(object):
     def __init__(self, port, handler):
-        self.handler = handler
-        self.processor = MasterAPI.MasterAPI.Processor(self.handler)
+        self.port = port
+        self.handler = WrappedHandler(handler)
+        self.processor = MasterAPI.Processor(self.handler)
 
         self.ctx = zmq.Context()
         self.reqrep_server = TZmqServer.TZmqServer(self.processor, self.ctx,
-            "tcp://0.0.0.0:%d" % self.port, zmq.REP)
+            'tcp://0.0.0.0:%d' % self.port, zmq.REP)
         self.multiserver = TZmqServer.TZmqMultiServer()
         self.multiserver.servers.append(self.reqrep_server)
 
     def start(self):
+        self.uri = 'tcp://0.0.0.0:%d' % self.port
         _thread.start_new_thread(self.multiserver.serveForever, ())
