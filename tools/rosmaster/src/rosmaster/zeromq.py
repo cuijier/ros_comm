@@ -8,7 +8,7 @@ except ImportError:
     import thread as _thread
 
 
-class WrappedHandler(object):
+class WrappedHandler(MasterAPI.Iface):
 
     def __init__(self, handler):
         self.handler = handler
@@ -28,6 +28,16 @@ class WrappedHandler(object):
     def getSystemState(self, caller_id):
         result = self.handler.getSystemState(caller_id)
         return [str(i) for i in result]
+
+    def lookupService(self, caller_id, service_):
+        result = self.handler.lookupService(caller_id, service_)
+        return [str(i) for i in result]
+
+    def registerService(self, caller_id, service_, service_api, caller_api):
+        result = self.handler.registerService(caller_id, service_, service_api,
+            caller_api)
+        return [str(i) for i in result]
+
 
 
 class ZeroMQNode(object):

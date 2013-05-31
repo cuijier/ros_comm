@@ -38,6 +38,7 @@ from rosgraph.names import resolve_name, ANYTYPE
 
 TYPE_SEPARATOR = '/'
 ROSRPC = "rosrpc://"
+ZEROMQ_THRIFT_RPC = "zeromq+thrift://"
 
 class ParameterInvalid(Exception):
     """Exception that is raised when a parameter fails validation checks"""
@@ -84,7 +85,8 @@ def is_api(paramName):
     def validator(param_value, callerId):
         if not param_value or not isinstance(param_value, basestring):
             raise ParameterInvalid("ERROR: parameter [%s] is not an XMLRPC URI"%paramName)
-        if not param_value.startswith("http://") and not param_value.startswith(ROSRPC):
+        if (not param_value.startswith("http://") and not param_value.startswith(ROSRPC) and
+            not param_value.startswith(ZEROMQ_THRIFT_RPC)):
             raise ParameterInvalid("ERROR: parameter [%s] is not an RPC URI"%paramName)
         #could do more fancy parsing, but the above catches the major cases well enough
         return param_value
